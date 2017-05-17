@@ -1,6 +1,8 @@
 # iobench
 Simple shell script for disk benchmarks
 
+**Requires root privileges!**
+
 Usage:
 
 ```sh
