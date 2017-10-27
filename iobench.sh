@@ -2,7 +2,7 @@
 
 #
 # Disk benchmark script by Christian Blechert
-# 2017-05-17
+# 2017-05-25
 # https://anysrc.net
 # https://github.com/perryflynn
 #
@@ -12,7 +12,11 @@
 EXEC=$0
 
 usage() {
-    echo "$EXEC --dir <directory> --megabytes 1024"
+    echo "Usage: $EXEC --dir <directory> --megabytes 1024"
+    echo
+    echo "Optional settings:"
+    echo "--sync    Test synced write and read without cache"
+    echo
 }
 
 tempfile() {
@@ -22,6 +26,9 @@ tempfile() {
 # Parse arguments
 DIR="."
 C=1024
+ISSYNC=0
+ISREAD=1
+ISWRITE=1
 
 while [[ $# -ge 1 ]]
 do
@@ -34,6 +41,15 @@ do
         -m|--megabytes)
             C="$2"
             shift # past argument
+            ;;
+        -s|--sync)
+            ISSYNC=1
+            ;;
+        --skipwrite)
+            ISWRITE=0
+            ;;
+        --skipread)
+            ISREAD=0
             ;;
         -h|--help)
             HELP=1
@@ -63,29 +79,61 @@ echo
 echo "1. Write benchmark without cache"
 
 TEMPF=$(tempfile)
-dd if=/dev/zero of="$TEMPF" bs=1M count=$C conv=fdatasync,notrunc 2>&1 | tail -n 1
+
+if [ "$ISWRITE" == "1" ] && [ "$ISSYNC" == "1" ]; then
+    dd if=/dev/zero of="$TEMPF" bs=1M count=$C conv=fdatasync,notrunc 2>&1 | tail -n 1
+    sleep 10
+elif [ "$ISWRITE" == "0" ]; then
+    echo "skipped."
+else
+    echo "skipped. use --sync option to enable."
+fi
 
 echo
 echo "2. Write benchmark with cache"
 
-dd if=/dev/zero of="$TEMPF" bs=1M count=$C 2>&1 | tail -n 1
+if [ "$ISWRITE" == "1" ]; then
+    dd if=/dev/zero of="$TEMPF" bs=1M count=$C 2>&1 | tail -n 1
+    sleep 10
+else
+    echo "skipped."
+fi
 
 echo
 echo "3. Read benchmark with droped cache"
 
-echo 3 > /proc/sys/vm/drop_caches
-dd if="$TEMPF" of=/dev/null bs=1M count=$C 2>&1 | tail -n 1
+
+if [ -f "$TEMPF" ] && [ "$ISREAD" == "1" ] && [ "$ISSYNC" == "1" ]; then
+    echo 3 > /proc/sys/vm/drop_caches
+    dd if="$TEMPF" of=/dev/null bs=1M count=$C 2>&1 | tail -n 1
+    sleep 10
+elif [ ! -f "$TEMPF" ]; then
+    echo "No file for read tests found. skipped."
+elif [ "$ISREAD" == "0" ]; then
+    echo "skipped."
+else
+    echo "skipped. use --sync option to enable."
+fi
 
 echo
 echo "4. Read benchmark without cache drop"
 
-for i in {1..5}; do
-    echo
-    echo "Start $i of 5..."
-    dd if="$TEMPF" of=/dev/null bs=1M count=$C 2>&1 | tail -n 1
-done
+if [ -f "$TEMPF" ] && [ "$ISREAD" == "1" ]; then
+    for i in {1..5}; do
+        echo
+        echo "Start $i of 5..."
+        dd if="$TEMPF" of=/dev/null bs=1M count=$C 2>&1 | tail -n 1
+    done
+elif [ ! -f "$TEMPF" ]; then
+    echo "No file for read tests found. skipped."
+else
+    echo "skipped."
+fi
 
-rm "$TEMPF"
+
+if [ -f "$TEMPF" ]; then
+    rm "$TEMPF"
+fi
 
 echo
 echo "Done."
