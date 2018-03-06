@@ -6,10 +6,10 @@ Simple shell script for disk benchmarks
 Usage:
 
 ```sh
-./iobench.sh --target /some/directory --megabytes 4096
+./iobench.sh --dir /some/directory --megabytes 4096 [--sync] [--skipwrite] [--skipread]
 ```
 
 Defaults:
 
-- `--target` -> Current directory
+- `--dir` -> Current directory
 - `--megabytes` -> 1024
