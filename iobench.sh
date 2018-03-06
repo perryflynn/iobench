@@ -2,7 +2,7 @@
 
 #
 # Disk benchmark script by Christian Blechert
-# 2017-05-25
+# 2017-05-17
 # https://anysrc.net
 # https://github.com/perryflynn
 #
@@ -15,7 +15,9 @@ usage() {
     echo "Usage: $EXEC --dir <directory> --megabytes 1024"
     echo
     echo "Optional settings:"
-    echo "--sync    Test synced write and read without cache"
+    echo "--sync      Test synced write and read without cache"
+    echo "--skipread  Skip the read part"
+    echo "--skipwrite Skip the write part"
     echo
 }
 
@@ -60,6 +62,11 @@ do
     esac
     shift # past argument or value
 done
+
+if [ "$HELP" == "1" ]; then
+    usage
+    exit 1
+fi
 
 if [ ! -d "$DIR" ]; then
     echo "Directory not found."
