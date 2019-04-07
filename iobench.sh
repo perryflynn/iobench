@@ -107,7 +107,7 @@ else
 fi
 
 echo
-echo "3. Read benchmark with droped cache"
+echo "3. Read benchmark with dropped cache"
 
 
 if [ -f "$TEMPF" ] && [ "$ISREAD" == "1" ] && [ "$ISSYNC" == "1" ]; then
