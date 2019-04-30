@@ -88,7 +88,7 @@ echo "1. Write benchmark without cache"
 TEMPF=$(tempfile)
 
 if [ "$ISWRITE" == "1" ] && [ "$ISSYNC" == "1" ]; then
-    dd if=/dev/zero of="$TEMPF" bs=1M count=$C conv=fdatasync,notrunc 2>&1 | tail -n 1
+    dd if=/dev/urandom of="$TEMPF" bs=1M count=$C conv=fdatasync,notrunc 2>&1 | tail -n 1
     sleep 10
 elif [ "$ISWRITE" == "0" ]; then
     echo "skipped."
@@ -100,7 +100,7 @@ echo
 echo "2. Write benchmark with cache"
 
 if [ "$ISWRITE" == "1" ]; then
-    dd if=/dev/zero of="$TEMPF" bs=1M count=$C 2>&1 | tail -n 1
+    dd if=/dev/urandom of="$TEMPF" bs=1M count=$C 2>&1 | tail -n 1
     sleep 10
 else
     echo "skipped."
